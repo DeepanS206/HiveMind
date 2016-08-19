@@ -10,11 +10,27 @@ app.config.update(dict(
   SECRET_KEY="development key",
 ))
 
+@app.context_processor
+def override_url_for():
+  return dict(url_for=dated_url_for)
+
+def dated_url_for(endpoint, **values):
+  if endpoint == 'static':
+    filename = values.get('filename', None)
+    if filename:
+      file_path = os.path.join(app.root_path,
+                              endpoint, filename)
+      values['q'] = int(os.stat(file_path).st_mtime)
+  return url_for(endpoint, **values)
+
+
 @app.route('/', methods=['GET'])
 def middleware():
   if session.get('logged_in'):
     return redirect('/home')
   return redirect('/login')
+
+
 
 @app.route('/add_user', methods=['GET', 'POST'])
 def add_user():
@@ -43,6 +59,8 @@ def add_user():
         error = 'User Info Taken'
   return render_template('add_user.html', error=error)
 
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
   error = None
@@ -63,6 +81,9 @@ def login():
     error = 'Account info not found'
   return render_template('login.html', error=error)
 
+
+
+
 @app.route('/home', methods=['GET'])
 def home():
   if session.get('logged_in'):
@@ -70,12 +91,18 @@ def home():
   else:
     return redirect("/login")
 
+
+
+
 @app.route('/logout', methods=['GET'])
 def logout():
   session.pop('logged_in', None)
   session.pop('user', None)
   flash('you were logged out')
   return redirect('/')
+
+
+
 
 if __name__ == '__main__':
   port = int(os.environ.get('PORT', 5000))

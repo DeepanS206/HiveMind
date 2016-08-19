@@ -6,7 +6,7 @@
 <body>
   <h2>Add User</h2>
   {% if error %}<p class=error><strong>Error:</strong> {{ error }}{% endif %}
-  <form action="{{ url_for('add_user') }}" method=post>
+  <form action="/add_user" method=post>
     <dl>
       <dt>Full Name:
       <dd><input type=text name=fullname>

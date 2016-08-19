@@ -6,11 +6,6 @@
 
  body {
     overflow-x: hidden;
-    text-align: center;
- }
-
- h1 {
-    text-align: center;
  }
 
 /* Toggle Styles */
@@ -21,7 +16,6 @@
     -moz-transition: all 0.5s ease;
     -o-transition: all 0.5s ease;
     transition: all 0.5s ease;
-    text-align: center;
 }
 
 #wrapper.toggled {
@@ -57,10 +51,6 @@
 #wrapper.toggled #page-content-wrapper {
     position: absolute;
     margin-right: -250px;
-}
-
-.wrapper-text h1 {
-    text-align: center;
 }
 
 /* Sidebar Styles */
