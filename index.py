@@ -1,7 +1,7 @@
 from flask import Flask, request, session, redirect, render_template, flash, url_for
+from authentication import assignUserId, exists
 from dbconfig import connect
-from bson import objectid
-import json
+from bson.objectid import ObjectId
 import os
 
 app = Flask(__name__)
@@ -27,27 +27,37 @@ def add_user():
     elif request.form["password"].strip() == "":
       error = 'Need to register with user name'
     else:
+      userId = assignUserId()
       userInfo = {
         "fullname":request.form['fullname'],
         "username":request.form['username'],
-        "password":request.form['password']
+        "password":request.form['password'],
+        "userid":userId
       }
-      #print(json.dumps(userInfo))
-      oid = handle.users.insert(userInfo)
-      session['logged_in'] = True
-      print 'welcome to HiveMind ' + request.form['fullname']
-      return redirect('/home')
+      if not exists(handle, request.form['username'], userId):
+        oid = handle.users.insert(userInfo)
+        session['logged_in'] = True
+        print 'Welcome to HiveMind ' + request.form['fullname']
+        return redirect('/home')
+      else:
+        error = 'User Info Taken'
   return render_template('add_user.html', error=error)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
   error = None
   if request.method == 'POST':
-    users = [json.loads(x) for x in handle.users.find()]
-    #print users
+    users = [x for x in handle.users.find()]
+    print users
     for user in users:
       if (user['username'] == request.form['username']) and (user['password'] == request.form['password']):
-        session['logged_in'] == True
+        session['logged_in'] = True
+        userInfo = {
+          "fullname":user['fullname'],
+          "username":user['username'],
+          "userid":user['userid']
+        }
+        session['user'] = userInfo
         print 'log in successful'
         return redirect('/home')
     error = 'Account info not found'
@@ -55,7 +65,17 @@ def login():
 
 @app.route('/home', methods=['GET'])
 def home():
-  return render_template('home.html')
+  if session.get('logged_in'):
+    return render_template('home.html', userinfo=session.get('user'))
+  else:
+    return redirect("/login")
+
+@app.route('/logout', methods=['GET'])
+def logout():
+  session.pop('logged_in', None)
+  session.pop('user', None)
+  flash('you were logged out')
+  return redirect('/')
 
 if __name__ == '__main__':
   port = int(os.environ.get('PORT', 5000))
