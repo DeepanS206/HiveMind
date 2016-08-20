@@ -87,9 +87,30 @@ def login():
 @app.route('/home', methods=['GET'])
 def home():
   if session.get('logged_in'):
-    return render_template('home.html', userinfo=session.get('user'))
+    userid = session.get('user')['userid']
+    userPosts = [x for x in handle.posts.find({"userid":userid})]
+    return render_template('home.html', userinfo=session.get('user'), posts=userPosts)
   else:
     return redirect("/login")
+
+
+#@app.route('/getProfile', methods=['GET'])
+#def getProfile():
+
+
+
+@app.route('/postActivity', methods=['POST'])
+def postActivity():
+  post = request.form['textarea']
+  userid = session.get('user')['userid']
+  postInfo = {
+    'userid':userid,
+    'post':post,
+    'upvotes':0,
+    'downvotes':0
+  }
+  handle.posts.insert(postInfo)
+  return redirect('/')
 
 
 
