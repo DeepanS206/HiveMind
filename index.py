@@ -23,6 +23,17 @@ def dated_url_for(endpoint, **values):
       values['q'] = int(os.stat(file_path).st_mtime)
   return url_for(endpoint, **values)
 
+def nameFromUserID(userid):
+  user = handle.users.find_one({"userid":userid})
+  return user['fullname']
+
+def modifyPosts(posts):
+  listPosts = []
+  for post in posts:
+    post['fullname'] = nameFromUserID(post['userid'])
+    listPosts.append(post)
+  return listPosts
+
 
 @app.route('/', methods=['GET'])
 def middleware():
@@ -89,15 +100,22 @@ def home():
   if session.get('logged_in'):
     userid = session.get('user')['userid']
     userPosts = [x for x in handle.posts.find({"userid":userid})]
-    return render_template('home.html', userinfo=session.get('user'), posts=userPosts)
+    return render_template('home.html', userinfo=session.get('user'), posts=modifyPosts(userPosts))
   else:
     return redirect("/login")
 
 
-#@app.route('/getProfile', methods=['GET'])
-#def getProfile():
-
-
+@app.route('/getProfile/<userid>', methods=['GET'])
+def getProfile(userid):
+  if session.get('logged_in'):
+    userId = int(userid)
+    #userid = session.get('user')['userid']
+    userPosts = [x for x in handle.posts.find({"userid":userId})]
+    user = handle.users.find_one({"userid":userId})
+    print user
+    return render_template('profile.html', userinfo=user, posts=userPosts, userLogged=session.get('user'))
+  else:
+    return redirect("/login")
 
 @app.route('/postActivity', methods=['POST'])
 def postActivity():
