@@ -82,7 +82,9 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <button class="btn btn-lg btn-primary">Add Friend!</button>
+                                {% if (userinfo.userid != userLogged.userid) and (not userinfo.userid in userLogged.friends) %}
+                                    <button onclick="window.location = 'http://0.0.0.0:5000/addFriend/{{userinfo.userid}}'" class="btn btn-lg btn-primary">Add Friend!</button>
+                                {% endif %}
                                 </div>
                                 {% for userpost in posts %}
                                 <!--h4>{{userpost.post}}</h4-->
@@ -189,6 +191,10 @@
                     }
                 });
             });
+
+            //$('#addFriendButton').click(function () {
+                //var friendId = window.location.split('/')
+            //});
         </script>
 
     </body>

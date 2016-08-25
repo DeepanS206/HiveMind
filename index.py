@@ -33,7 +33,7 @@ def modifyPosts(posts):
   for post in posts:
     post['fullname'] = nameFromUserID(post['userid'])
     listPosts.append(post)
-  return listPosts
+  return sorted(listPosts, key=lambda x: x['upvotes'] - x['downvotes'], reverse=True)
 
 
 @app.route('/', methods=['GET'])
@@ -101,9 +101,15 @@ def login():
 @app.route('/home', methods=['GET'])
 def home():
   if session.get('logged_in'):
-    print session.get('user')
-    userid = loads(session.get('user'))['userid']
+    user = loads(session.get('user'))
+    userid = user['userid']
+    userFriends = user['friends']
+    print userFriends
     userPosts = [x for x in handle.posts.find({"userid":userid})]
+    for friend in userFriends:
+      friendPosts = [x for x in handle.posts.find({"userid":friend})]
+      userPosts = userPosts + friendPosts
+    print userPosts
     return render_template('home.html', userinfo=loads(session.get('user')), posts=modifyPosts(userPosts))
   else:
     return redirect("/login")
@@ -160,6 +166,26 @@ def upvote(postid):
   post['upvotes'] = post['upvotes'] + 1;
   handle.posts.remove({"postid":postid})
   handle.posts.insert(post)
+  return redirect('/home')
+
+@app.route('/downvote/<postid>', methods=['GET'])
+def downvote(postid):
+  post = handle.posts.find_one({"postid":postid})
+  post['downvotes'] = post['downvotes'] + 1;
+  handle.posts.remove({"postid":postid})
+  handle.posts.insert(post)
+  return redirect('/home')
+
+
+@app.route('/addFriend/<userid>', methods=['GET'])
+def addFriend(userid):
+  userLoggedId = loads(session.get('user'))['userid']
+  userLogged = handle.users.find_one({"userid":userLoggedId})
+  userLogged['friends'].append(userid)
+  handle.users.remove({"userid":userLoggedId})
+  handle.users.insert(userLogged)
+  session.pop('user', None)
+  session['user'] = dumps(userLogged)
   return redirect('/home')
 
 
