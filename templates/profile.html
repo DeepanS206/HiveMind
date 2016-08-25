@@ -41,7 +41,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="/getProfle/{{userLogged.userid}}">Profile</a>
+                        <a href="/getProfile/{{userLogged.userid}}">Profile</a>
                     </li>
                     <li>
                         <a href="/settings/{{userLogged.userid}}">Settings</a>
@@ -54,6 +54,10 @@
                         <form>
                             <input id="searchbar" type="text" name="query" placeholder="Search for friends">
                         </form>
+                        <div class="search-results">
+                            <!--a href="/getProfile">Remo</a>
+                            <a href="/getProfile">Kavin</a-->
+                        </div>
                     </li>
                 </ul>
             </div>
@@ -89,7 +93,7 @@
                                         </div>
                                         <div class="card-content">
                                             <div class="card-header">
-                                               <a href="getProfile/{{userpost.userid}}"><h4>{{userpost.userid}}</h4></a>
+                                               <a href="getProfile/{{userpost.userid}}"><h4>{{userpost.fullname}}</h4></a>
                                             </div>
                                             <p>{{userpost.post}}</p>
                                             <br></br>
@@ -106,8 +110,8 @@
                                         </div>
 
                                         <div class="card-action">
-                                            <a href="#" target="new_blank">Upvote {{userpost.upvotes}}</a>
-                                            <a href="#" target="new_blank">Downvote {{userpost.downvotes}}</a>
+                                            <a href="/upvote/{{userpost.postid}}" target="new_blank">Upvote {{userpost.upvotes}}</a>
+                                            <a href="/downvote/{{userpost.postid}}" target="new_blank">Downvote {{userpost.downvotes}}</a>
                                             <a id="commentButton">Comments</a>
                                         </div>
                                     </div>
@@ -154,8 +158,37 @@
 
             $('#searchbar').keyup(function () {
                 //send get request to server and display results on sidebar
-                
-            })
+                console.log('keyup registered')
+                var query = $('#searchbar').val();
+                if (!query) {
+                    query = "";
+                }
+                var reqUrl = 'http://0.0.0.0:5000/search/' + query;
+                $.ajax({
+                    type: 'GET',
+                    url: reqUrl,
+                    success: function (results) {
+                        if (results == "") {
+                            $('.search-results').html('');
+                        } else {
+                            newResults = JSON.parse(results);
+                            console.log(JSON.parse(results));
+                            $('.search-results').html('');
+                            for (var i = 0; i < newResults.length; i++) {
+                                var user = newResults[i];
+                                var html = "<a href=/getProfile/" + user.userid + ">" + user.fullname + "</a>";
+                                $('.search-results').append(html)
+                            }
+                        }
+                    }, 
+                    error: function (xhr, err, obj) {
+                        console.log('Error: ' + err);
+                    }, 
+                    complete: function (xhr, status) {
+                        console.log('Complete: ' + status);
+                    }
+                });
+            });
         </script>
 
     </body>

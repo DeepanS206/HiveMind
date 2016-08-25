@@ -3,6 +3,9 @@ from random import randrange
 def assignUserId():
   return randrange(1000000)
 
+def assignPostId():
+  return randrange(1000000000000)
+
 def exists(handle, username, userid):
   users = [x for x in handle.users.find()]
   for user in users:
